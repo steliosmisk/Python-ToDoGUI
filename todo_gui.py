@@ -2,10 +2,11 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import (
     QApplication, QWidget, QPushButton, QLineEdit,
     QLabel, QVBoxLayout, QCheckBox, QGroupBox,
-    QMessageBox, QMainWindow, QFileDialog
+    QMessageBox, QMainWindow, QFileDialog, QListWidget, QRadioButton
 )
 from PyQt5.QtCore import QEventLoop
 from PyQt5.QtGui import QFont
+import os
 
 
 def creation_list():
@@ -44,26 +45,25 @@ def creation_list():
 
         # Add the delete button functionality
         def delete_recent_task():
-            if checkbox_layout.count() > 0:
-                item = checkbox_layout.itemAt(checkbox_layout.count() - 1)
-                item.widget().setParent(None)
-                del item
+            for i in reversed(range(checkbox_layout.count())):
+                widget = checkbox_layout.itemAt(i).widget()
+                if isinstance(widget, QCheckBox) and widget.isChecked():
+                    widget.setParent(None)
+                    widget.deleteLater()
 
         # Save the list to a file
         def save_list():
-            # Create the file dialog
-            options = QFileDialog.Options()
-            options |= QFileDialog.DontUseNativeDialog
-            file_name, _ = QFileDialog.getSaveFileName(None, "Save file", "", "Text Files (*.txt)", options=options)
-
+            file_name = f'{name_file.text()}.txt'
             # Write the list contents to the selected file
             if file_name:
                 with open(file_name, 'w') as file:
                     for i in range(checkbox_layout.count()):
                         item = checkbox_layout.itemAt(i).widget()
                         file.write(f'{i + 1}: {item.text()}\n')
-                QMessageBox.information(None, 'Success', 'List saved')
+                path = os.path.abspath(file_name)  # get absolute path of file
+                QMessageBox.information(None, 'Success', f'List saved in the path: {path}')
 
+        open_file.clicked.connect(opening_list)
         save_button.clicked.connect(save_list)
         delete_button.clicked.connect(delete_recent_task)
 
@@ -141,7 +141,6 @@ def creation_list():
     # Clean up the event loop
     loop.deleteLater()
 
-
     # Create the layout and add widgets
     layout = QVBoxLayout()
     layout.addWidget(label)
@@ -167,6 +166,10 @@ def creation_list():
     loop.deleteLater()
 
 
+def opening(filename):
+    notepad = 'notepad.exe'
+    filename = os.path.abspath(filename)
+    return os.system(f"{notepad} {filename}")
 # Initialize the application
 app = QApplication([])
 display = QWidget()
@@ -176,12 +179,36 @@ display.setWindowTitle('To-Do List: Made by @VronnasAI')
 # Making the program
 title = QLabel('To-Do List BY @VronnasAI')
 create_file = QPushButton('Create New List')
+open_file = QPushButton('Open List')
+
+
+group_box = QGroupBox("MY SAVED LISTS")
+group_box_layout = QVBoxLayout()
+group_box.setLayout(group_box_layout)
+listdirs = os.path.dirname(os.path.abspath('todo_gui.py'))
+file_names = os.listdir(listdirs)
+
+# Loop through the list of files and add a label for each .txt file
+for file_name in file_names:
+    if os.path.splitext(file_name)[1] == '.txt':
+        label = QRadioButton(os.path.basename(file_name))
+        group_box_layout.addWidget(label)
+        label.setFont(QFont('Courier', 12))
+        label.clicked.connect(opening)
+        # Open the file
+        label.setChecked(True)
+
 
 create_file.clicked.connect(creation_list)
+
 
 layout = QVBoxLayout()
 layout.addWidget(title)
 layout.addWidget(create_file)
+layout.addWidget(open_file)
+layout.addWidget(group_box)
+
+
 layout.setAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
 display.setLayout(layout)
 
