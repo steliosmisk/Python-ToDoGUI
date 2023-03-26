@@ -62,8 +62,8 @@ def creation_list():
                         file.write(f'{i + 1}: {item.text()}\n')
                 path = os.path.abspath(file_name)  # get absolute path of file
                 QMessageBox.information(None, 'Success', f'List saved in the path: {path}')
+                QMessageBox.information(None, 'Success', 'Re-Run the program to see the changes')
 
-        open_file.clicked.connect(opening_list)
         save_button.clicked.connect(save_list)
         delete_button.clicked.connect(delete_recent_task)
 
@@ -166,10 +166,12 @@ def creation_list():
     loop.deleteLater()
 
 
-def opening(filename):
-    notepad = 'notepad.exe'
-    filename = os.path.abspath(filename)
-    return os.system(f"{notepad} {filename}")
+def opening():
+    for label in my_files:
+        if label.isChecked():
+            os.system(f'notepad.exe {label.text()}')
+            break
+
 # Initialize the application
 app = QApplication([])
 display = QWidget()
@@ -185,21 +187,22 @@ open_file = QPushButton('Open List')
 group_box = QGroupBox("MY SAVED LISTS")
 group_box_layout = QVBoxLayout()
 group_box.setLayout(group_box_layout)
-listdirs = os.path.dirname(os.path.abspath('todo_gui.py'))
+listdirs = os.path.dirname(os.path.abspath(__file__))
 file_names = os.listdir(listdirs)
 
-# Loop through the list of files and add a label for each .txt file
+
+
+my_files = []
 for file_name in file_names:
     if os.path.splitext(file_name)[1] == '.txt':
         label = QRadioButton(os.path.basename(file_name))
         group_box_layout.addWidget(label)
         label.setFont(QFont('Courier', 12))
-        label.clicked.connect(opening)
-        # Open the file
-        label.setChecked(True)
+        my_files.append(label)
 
 
 create_file.clicked.connect(creation_list)
+open_file.clicked.connect(opening)
 
 
 layout = QVBoxLayout()
