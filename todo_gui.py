@@ -7,6 +7,7 @@ from PyQt5.QtWidgets import (
 from PyQt5.QtCore import QEventLoop
 from PyQt5.QtGui import QFont
 import os
+import sys
 
 
 def creation_list():
@@ -63,6 +64,7 @@ def creation_list():
                 path = os.path.abspath(file_name)  # get absolute path of file
                 QMessageBox.information(None, 'Success', f'List saved in the path: {path}')
                 QMessageBox.information(None, 'Success', 'Re-Run the program to see the changes')
+                display.exec_(sys.argv)
 
         save_button.clicked.connect(save_list)
         delete_button.clicked.connect(delete_recent_task)
@@ -77,7 +79,9 @@ def creation_list():
             else:
                 QMessageBox.warning(display, 'Warning', 'Please enter a task name')
 
+        # Connect the "Add Task" button and the QLineEdit returnPressed signal to the create_task function
         button.clicked.connect(create_task)
+        name_task.returnPressed.connect(create_task)
 
         # Create the layout and add widgets
         layout = QVBoxLayout()
@@ -172,25 +176,23 @@ def opening():
             os.system(f'notepad.exe {label.text()}')
             break
 
+
 # Initialize the application
 app = QApplication([])
 display = QWidget()
 display.resize(300, 300)
-display.setWindowTitle('To-Do List: Made by @VronnasAI')
+display.setWindowTitle('To-Do List: To-Do List: Made by @SteliosMisk #2023')
 
 # Making the program
-title = QLabel('To-Do List BY @VronnasAI')
+title = QLabel('To-Do List: Made by @SteliosMisk #2023')
 create_file = QPushButton('Create New List')
 open_file = QPushButton('Open List')
-
 
 group_box = QGroupBox("MY SAVED LISTS")
 group_box_layout = QVBoxLayout()
 group_box.setLayout(group_box_layout)
 listdirs = os.path.dirname(os.path.abspath(__file__))
 file_names = os.listdir(listdirs)
-
-
 
 my_files = []
 for file_name in file_names:
@@ -200,17 +202,14 @@ for file_name in file_names:
         label.setFont(QFont('Courier', 12))
         my_files.append(label)
 
-
 create_file.clicked.connect(creation_list)
 open_file.clicked.connect(opening)
-
 
 layout = QVBoxLayout()
 layout.addWidget(title)
 layout.addWidget(create_file)
 layout.addWidget(open_file)
 layout.addWidget(group_box)
-
 
 layout.setAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
 display.setLayout(layout)
