@@ -1,13 +1,11 @@
-from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import (
-    QApplication, QWidget, QPushButton, QLineEdit,
-    QLabel, QVBoxLayout, QCheckBox, QGroupBox,
-    QMessageBox, QMainWindow, QFileDialog, QListWidget, QRadioButton
-)
-from PyQt5.QtCore import QEventLoop
+from PyQt5.QtCore import Qt, QEventLoop
 from PyQt5.QtGui import QFont
+from PyQt5.QtWidgets import (QApplication, QWidget, QPushButton, QLineEdit,
+                             QLabel, QVBoxLayout, QCheckBox, QGroupBox,
+                             QMessageBox, QMainWindow, QFileDialog, QListWidget, QRadioButton)
 import os
 import sys
+import subprocess
 
 
 def creation_list():
@@ -24,7 +22,6 @@ def creation_list():
     label.setAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
     button = QPushButton('Create')
 
-    # Open a new list
     def open_new_list(name_file):
         # Create the main window
         display = QMainWindow()
@@ -42,6 +39,7 @@ def creation_list():
         checkbox_group = QGroupBox('Tasks')
         checkbox_layout = QVBoxLayout()
         save_button = QPushButton('Save List')
+        main_menu = QPushButton('Return Main Menu')
         checkbox_group.setLayout(checkbox_layout)
 
         # Add the delete button functionality
@@ -55,7 +53,6 @@ def creation_list():
         # Save the list to a file
         def save_list():
             file_name = f'{name_file.text()}.txt'
-            # Write the list contents to the selected file
             if file_name:
                 with open(file_name, 'w') as file:
                     for i in range(checkbox_layout.count()):
@@ -63,8 +60,12 @@ def creation_list():
                         file.write(f'{i + 1}: {item.text()}\n')
                 path = os.path.abspath(file_name)  # get absolute path of file
                 QMessageBox.information(None, 'Success', f'List saved in the path: {path}')
-                QMessageBox.information(None, 'Success', 'Re-Run the program to see the changes')
-                display.exec_(sys.argv)
+                display.close()
+
+                # Re-Open the program
+                program = sys.executable
+                args = [sys.argv[0]]
+                subprocess.Popen([program] + args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
         save_button.clicked.connect(save_list)
         delete_button.clicked.connect(delete_recent_task)
@@ -79,9 +80,16 @@ def creation_list():
             else:
                 QMessageBox.warning(display, 'Warning', 'Please enter a task name')
 
+        def main_menu_button():
+            for widget in QApplication.topLevelWidgets():
+                if isinstance(widget, QMainWindow):
+                    widget.close()
+                    display.close()
+
         # Connect the "Add Task" button and the QLineEdit returnPressed signal to the create_task function
         button.clicked.connect(create_task)
         name_task.returnPressed.connect(create_task)
+        main_menu.clicked.connect(main_menu_button)
 
         # Create the layout and add widgets
         layout = QVBoxLayout()
@@ -91,6 +99,7 @@ def creation_list():
         layout.addWidget(delete_button)
         layout.addWidget(checkbox_group)
         layout.addWidget(save_button)
+        layout.addWidget(main_menu)
         layout.setAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
         display.setLayout(layout)
 
@@ -98,8 +107,6 @@ def creation_list():
         central_widget = QWidget()
         central_widget.setLayout(layout)
         display.setCentralWidget(central_widget)
-
-        # Show the window
         display.show()
 
         # Start an event loop to keep the window open
@@ -134,7 +141,6 @@ def creation_list():
     central_widget.setLayout(layout)
     display.setCentralWidget(central_widget)
 
-    # Show the window
     display.show()
 
     # Start an event loop to keep the window open
@@ -153,10 +159,6 @@ def creation_list():
     layout.setAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
     display.setLayout(layout)
 
-    # Create a central widget, set the layout, and set it to the main window
-    central_widget = QWidget()
-    central_widget.setLayout(layout)
-    display.setCentralWidget(central_widget)
 
     # Show the window
     display.show()
